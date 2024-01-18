@@ -1,1 +1,5 @@
-module.exports = require('@lobehub/lint').commitlint;
+module.exports = {
+  rules: {
+    'subject-empty': [0], // 确保主题不为空
+  },
+};

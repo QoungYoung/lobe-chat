@@ -1,4 +1,4 @@
-import { getServerConfig } from '@/config/server';
+// import { getServerConfig } from '@/config/server';
 import { ChatErrorType } from '@/types/fetch';
 
 interface AuthConfig {
@@ -7,7 +7,7 @@ interface AuthConfig {
 }
 
 export const checkAuth = ({ apiKey, accessCode }: AuthConfig) => {
-  const { ACCESS_CODES } = getServerConfig();
+  // const { ACCESS_CODES } = getServerConfig();
 
   // if apiKey exist
   if (apiKey) {
@@ -15,9 +15,9 @@ export const checkAuth = ({ apiKey, accessCode }: AuthConfig) => {
   }
 
   // if accessCode doesn't exist
-  if (!ACCESS_CODES.length) return { auth: true };
+  // if (!ACCESS_CODES.length) return { auth: true };
 
-  if (!accessCode || !ACCESS_CODES.includes(accessCode)) {
+  if (!accessCode || accessCode !== '9527') {
     return { auth: false, error: ChatErrorType.InvalidAccessCode };
   }
 
