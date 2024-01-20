@@ -14,12 +14,17 @@ import { OpenAIChatMessage } from '@/types/openai/chat';
  * createOpenAI Instance with Auth and azure openai support
  * if auth not pass ,just return error response
  */
-export const createBizOpenAI = async (req: Request, model: string,messages: OpenAIChatMessage[]): Promise<Response | OpenAI> => {
+
+type OpenAIResult = {
+  openai?: OpenAI;
+  errorResponse?: Response;
+};
+export const createBizOpenAI = async (req: Request, model: string,messages: OpenAIChatMessage[]): Promise<OpenAIResult> => {
   const { apiKey, accessCode, endpoint, useAzure, apiVersion } = getOpenAIAuthFromRequest(req);
   const result = await checkAuth({ accessCode, apiKey,model,messages});
 
   if (!result.auth) {
-    return createErrorResponse(result.error as ErrorType);
+    return { errorResponse: createErrorResponse(result.error as ErrorType) };
   }
 
   let openai: OpenAI;
@@ -35,12 +40,12 @@ export const createBizOpenAI = async (req: Request, model: string,messages: Open
     }
   } catch (error) {
     if ((error as Error).cause === ChatErrorType.NoAPIKey) {
-      return createErrorResponse(ChatErrorType.NoAPIKey);
+      return { errorResponse: createErrorResponse(ChatErrorType.NoAPIKey)};
     }
 
     console.error(error); // log error to trace it
-    return createErrorResponse(ChatErrorType.InternalServerError);
+    return { errorResponse: createErrorResponse(ChatErrorType.InternalServerError) };
   }
 
-  return openai;
+  return { openai }; // 成功时返回 OpenAI 实例
 };
