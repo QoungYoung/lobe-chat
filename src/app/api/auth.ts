@@ -5,8 +5,9 @@ import { OpenAIChatMessage } from '@/types/openai/chat';
 interface AuthConfig {
   accessCode?: string | null;
   apiKey?: string | null;
-  model: string;
   messages: OpenAIChatMessage[]
+  model: string;
+
 }
 
 export const checkAuth = async ({ apiKey, accessCode,messages,model }: AuthConfig) => {
