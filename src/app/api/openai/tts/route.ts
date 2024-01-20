@@ -3,6 +3,7 @@ import { createOpenaiAudioSpeech } from '@lobehub/tts/server';
 
 import { getPreferredRegion } from '../../config';
 import { createBizOpenAI } from '../createBizOpenAI';
+import OpenAI from 'openai';
 
 export const runtime = 'edge';
 export const preferredRegion = getPreferredRegion();
@@ -15,5 +16,5 @@ export const POST = async (req: Request) => {
   // if resOrOpenAI is a Response, it means there is an error,just return it
   if (openaiOrErrResponse.errorResponse instanceof Response) return openaiOrErrResponse.errorResponse;
 
-  return await createOpenaiAudioSpeech({ openai: openaiOrErrResponse.openai, payload });
+  return await createOpenaiAudioSpeech({ openai: openaiOrErrResponse.openai as OpenAI, payload });
 };
