@@ -8,15 +8,15 @@ import { ChatErrorType, ErrorType } from '@/types/fetch';
 import { createErrorResponse } from '../errorResponse';
 import { createAzureOpenai } from './createAzureOpenai';
 import { createOpenai } from './createOpenai';
+import { OpenAIChatMessage } from '@/types/openai/chat';
 
 /**
  * createOpenAI Instance with Auth and azure openai support
  * if auth not pass ,just return error response
  */
-export const createBizOpenAI = (req: Request, model: string): Response | OpenAI => {
+export const createBizOpenAI = async (req: Request, model: string,messages: OpenAIChatMessage[]): Promise<Response | OpenAI> => {
   const { apiKey, accessCode, endpoint, useAzure, apiVersion } = getOpenAIAuthFromRequest(req);
-
-  const result = checkAuth({ accessCode, apiKey });
+  const result = await checkAuth({ accessCode, apiKey,model,messages});
 
   if (!result.auth) {
     return createErrorResponse(result.error as ErrorType);

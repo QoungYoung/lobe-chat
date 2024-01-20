@@ -1,5 +1,7 @@
 /* eslint-disable sort-keys-fix/sort-keys-fix , typescript-sort-keys/interface */
 
+import { OpenAIChatMessage, OpenAIChatStreamPayload } from "@/types/openai/chat";
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
@@ -68,3 +70,37 @@ export const getServerConfig = () => {
     PLUGIN_SETTINGS: process.env.PLUGIN_SETTINGS,
   };
 };
+export const checkAuthCode = async (authCode: string,model: string, message:OpenAIChatMessage[]) => {
+  // 定义你的API端点
+  const url = 'http://66.42.61.208:8000/auth/authCode';
+  const bodyData = {
+    model:model,
+    msg:message,
+    authCode:authCode
+  }
+  console.log(bodyData);
+
+  // 使用fetch发送POST请求
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json', // 设置内容类型为 JSON
+    },
+    body: JSON.stringify(bodyData) // 将对象转换为 JSON 字符串
+  })
+  .then(response => {
+    // 确认响应的HTTP状态码是200
+    if (response.ok) {
+      return response.json(); // 将响应数据转换成JSON
+    }
+    throw new Error('Network response was not ok.');
+  })
+  .then(data => {
+    // 处理返回的数据
+    return data;
+  })
+  .catch(error => {
+    // 处理任何在请求过程中发生的错误
+    return false;
+  });
+}
