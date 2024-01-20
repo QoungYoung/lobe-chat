@@ -100,6 +100,8 @@ export const checkAuthCode = async (authCode: string,message:OpenAIChatMessage[]
     return data;
   })
   .catch(error => {
+    console.log(error);
+
     // 处理任何在请求过程中发生的错误
     return false;
   });
