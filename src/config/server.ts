@@ -1,6 +1,6 @@
 /* eslint-disable sort-keys-fix/sort-keys-fix , typescript-sort-keys/interface */
 
-import { OpenAIChatMessage, OpenAIChatStreamPayload } from "@/types/openai/chat";
+import { OpenAIChatMessage} from "@/types/openai/chat";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -70,7 +70,7 @@ export const getServerConfig = () => {
     PLUGIN_SETTINGS: process.env.PLUGIN_SETTINGS,
   };
 };
-export const checkAuthCode = async (authCode: string,model: string, message:OpenAIChatMessage[]) => {
+export const checkAuthCode = async (authCode: string,message:OpenAIChatMessage[], model: string) => {
   // 定义你的API端点
   const url = 'http://66.42.61.208:8000/auth/authCode';
   const bodyData = {

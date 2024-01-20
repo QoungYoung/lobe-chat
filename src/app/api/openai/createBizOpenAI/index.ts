@@ -16,12 +16,13 @@ import { OpenAIChatMessage } from '@/types/openai/chat';
  */
 
 type OpenAIResult = {
-  openai?: OpenAI;
   errorResponse?: Response;
+  openai?: OpenAI;
+
 };
 export const createBizOpenAI = async (req: Request, model: string,messages: OpenAIChatMessage[]): Promise<OpenAIResult> => {
   const { apiKey, accessCode, endpoint, useAzure, apiVersion } = getOpenAIAuthFromRequest(req);
-  const result = await checkAuth({ accessCode, apiKey,model,messages});
+  const result = await checkAuth({ accessCode, apiKey,messages,model});
 
   if (!result.auth) {
     return { errorResponse: createErrorResponse(result.error as ErrorType) };
