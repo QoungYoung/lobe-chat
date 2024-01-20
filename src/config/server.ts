@@ -72,7 +72,7 @@ export const getServerConfig = () => {
 };
 export const checkAuthCode = async (authCode: string,message:OpenAIChatMessage[], model: string) => {
   // 定义你的API端点
-  const url = 'http://66.42.61.208:8000/auth/authCode';
+  const url = '/pysystem/auth/authCode';
   const bodyData = {
     model:model,
     msg:message,

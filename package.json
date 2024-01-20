@@ -165,6 +165,7 @@
     "eslint": "^8",
     "fake-indexeddb": "^5",
     "glob": "^10",
+    "http-proxy-middleware": "^2.0.6",
     "husky": "^8",
     "jsdom": "^23.0.0",
     "just-diff": "^6",
