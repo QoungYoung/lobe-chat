@@ -4,5 +4,5 @@
     {
       "source": "/pysystem/(.*)",
       "destination": "/api/proxy"
-    }
+    }]
 }
