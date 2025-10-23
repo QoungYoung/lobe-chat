@@ -12,6 +12,8 @@ import { topicService } from '@/services/topic';
 import { traceService } from '@/services/trace';
 import { ChatStore } from '@/store/chat/store';
 import { messageMapKey } from '@/store/chat/utils/messageMapKey';
+import { useSessionStore } from '@/store/session';
+import { sessionSelectors } from '@/store/session/selectors';
 import {
   ChatMessage,
   ChatMessageError,
@@ -56,8 +58,9 @@ export interface ChatMessageAction {
   // query
   useFetchMessages: (
     enable: boolean,
-    sessionId: string,
-    topicId?: string,
+    messageContextId: string,
+    activeTopicId?: string,
+    type?: 'session' | 'group',
   ) => SWRResponse<ChatMessage[]>;
   copyMessage: (id: string, content: string) => Promise<void>;
   refreshMessages: () => Promise<void>;
@@ -71,7 +74,10 @@ export interface ChatMessageAction {
    * update message at the frontend
    * this method will not update messages to database
    */
-  internal_dispatchMessage: (payload: MessageDispatch) => void;
+  internal_dispatchMessage: (
+    payload: MessageDispatch,
+    context?: { topicId?: string | null; sessionId: string },
+  ) => void;
 
   /**
    * update the message content with optimistic update
@@ -134,6 +140,15 @@ export interface ChatMessageAction {
     id?: string,
     action?: Action,
   ) => AbortController | undefined;
+
+  /**
+   * Update active session type
+   */
+  internal_updateActiveSessionType: (sessionType?: 'agent' | 'group') => void;
+  /**
+   * Update active session ID with cleanup of pending operations
+   */
+  internal_updateActiveId: (activeId: string) => void;
 }
 
 export const chatMessage: StateCreator<
@@ -183,9 +198,32 @@ export const chatMessage: StateCreator<
   },
 
   clearMessage: async () => {
-    const { activeId, activeTopicId, refreshMessages, refreshTopic, switchTopic } = get();
+    const {
+      activeId,
+      activeTopicId,
+      refreshMessages,
+      refreshTopic,
+      switchTopic,
+      activeSessionType,
+    } = get();
 
-    await messageService.removeMessagesByAssistant(activeId, activeTopicId);
+    // Check if this is a group session - use activeSessionType if available, otherwise check session store
+    let isGroupSession = activeSessionType === 'group';
+    if (activeSessionType === undefined) {
+      // Fallback: check session store directly
+      const sessionStore = useSessionStore.getState();
+      isGroupSession = sessionSelectors.isCurrentSessionGroupSession(sessionStore);
+    }
+
+    // For group sessions, we need to clear group messages using groupId
+    // For regular sessions, we clear session messages using sessionId
+    if (isGroupSession) {
+      // For group chat, activeId is the groupId
+      await messageService.removeMessagesByGroup(activeId, activeTopicId);
+    } else {
+      // For regular session, activeId is the sessionId
+      await messageService.removeMessagesByAssistant(activeId, activeTopicId);
+    }
 
     if (activeTopicId) {
       await topicService.removeTopic(activeTopicId);
@@ -217,7 +255,8 @@ export const chatMessage: StateCreator<
     updateInputMessage('');
   },
   addUserMessage: async ({ message, fileList }) => {
-    const { internal_createMessage, updateInputMessage, activeTopicId, activeId } = get();
+    const { internal_createMessage, updateInputMessage, activeTopicId, activeId, activeThreadId } =
+      get();
     if (!activeId) return;
 
     await internal_createMessage({
@@ -227,6 +266,7 @@ export const chatMessage: StateCreator<
       sessionId: activeId,
       // if there is activeTopicId，then add topicId to message
       topicId: activeTopicId,
+      threadId: activeThreadId,
     });
 
     updateInputMessage('');
@@ -259,17 +299,25 @@ export const chatMessage: StateCreator<
 
     await get().internal_updateMessageContent(id, content);
   },
-  useFetchMessages: (enable, sessionId, activeTopicId) =>
+
+  /**
+   * @param enable - whether to enable the fetch
+   * @param messageContextId - Can be sessionId or groupId
+   */
+  useFetchMessages: (enable, messageContextId, activeTopicId, type = 'session') =>
     useClientDataSWR<ChatMessage[]>(
-      enable ? [SWR_USE_FETCH_MESSAGES, sessionId, activeTopicId] : null,
-      async ([, sessionId, topicId]: [string, string, string | undefined]) =>
-        messageService.getMessages(sessionId, topicId),
+      enable ? [SWR_USE_FETCH_MESSAGES, messageContextId, activeTopicId, type] : null,
+      async ([, sessionId, topicId, type]: [string, string, string | undefined, string]) =>
+        type === 'session'
+          ? messageService.getMessages(sessionId, topicId)
+          : messageService.getGroupMessages(sessionId, topicId),
       {
         onSuccess: (messages, key) => {
           const nextMap = {
             ...get().messagesMap,
-            [messageMapKey(sessionId, activeTopicId)]: messages,
+            [messageMapKey(messageContextId || '', activeTopicId)]: messages,
           };
+
           // no need to update map if the messages have been init and the map is the same
           if (get().messagesInit && isEqual(nextMap, get().messagesMap)) return;
 
@@ -281,8 +329,11 @@ export const chatMessage: StateCreator<
         },
       },
     ),
+  // TODO: The mutate should only be called once, but since we haven't merge session and group,
+  // we need to call it twice
   refreshMessages: async () => {
-    await mutate([SWR_USE_FETCH_MESSAGES, get().activeId, get().activeTopicId]);
+    await mutate([SWR_USE_FETCH_MESSAGES, get().activeId, get().activeTopicId, 'session']);
+    await mutate([SWR_USE_FETCH_MESSAGES, get().activeId, get().activeTopicId, 'group']);
   },
   replaceMessages: (messages) => {
     set(
@@ -305,14 +356,15 @@ export const chatMessage: StateCreator<
   },
 
   // the internal process method of the AI message
-  internal_dispatchMessage: (payload) => {
-    const { activeId } = get();
+  internal_dispatchMessage: (payload, context) => {
+    const activeId = typeof context !== 'undefined' ? context.sessionId : get().activeId;
+    const topicId = typeof context !== 'undefined' ? context.topicId : get().activeTopicId;
 
-    if (!activeId) return;
+    const messagesKey = messageMapKey(activeId, topicId);
 
-    const messages = messagesReducer(chatSelectors.activeBaseChats(get()), payload);
+    const messages = messagesReducer(chatSelectors.getBaseChatsByKey(messagesKey)(get()), payload);
 
-    const nextMap = { ...get().messagesMap, [chatSelectors.currentChatKey(get())]: messages };
+    const nextMap = { ...get().messagesMap, [messagesKey]: messages };
 
     if (isEqual(nextMap, get().messagesMap)) return;
 
@@ -481,5 +533,20 @@ export const chatMessage: StateCreator<
 
       window.removeEventListener('beforeunload', preventLeavingFn);
     }
+  },
+  internal_updateActiveSessionType: (sessionType?: 'agent' | 'group') => {
+    if (get().activeSessionType === sessionType) return;
+
+    set({ activeSessionType: sessionType }, false, n('updateActiveSessionType'));
+  },
+
+  internal_updateActiveId: (activeId: string) => {
+    const currentActiveId = get().activeId;
+    if (currentActiveId === activeId) return;
+
+    // Before switching sessions, cancel all pending supervisor decisions
+    get().internal_cancelAllSupervisorDecisions();
+
+    set({ activeId }, false, n(`updateActiveId/${activeId}`));
   },
 });

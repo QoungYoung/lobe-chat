@@ -1,4 +1,6 @@
 name: Publish Database Docker Image
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
@@ -20,7 +22,7 @@ jobs:
     # 添加 PR label 触发条件
     if: |
       (github.event_name == 'pull_request' &&
-       contains(github.event.pull_request.labels.*.name, 'Build Docker')) ||
+       contains(github.event.pull_request.labels.*.name, 'trigger:build-docker')) ||
       github.event_name != 'pull_request'
 
     strategy:
@@ -116,7 +118,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: /tmp/digests
           pattern: digest-*
@@ -160,10 +162,9 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
 
-
       - name: Comment on PR with Docker build info
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -178,5 +179,3 @@ jobs:
               platforms: "linux/amd64, linux/arm64",
             });
             core.info(`Status: ${result.updated ? 'Updated' : 'Created'}, ID: ${result.id}`);
-
-

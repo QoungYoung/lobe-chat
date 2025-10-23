@@ -9,7 +9,7 @@ const doubaoChatModels: AIChatModelCard[] = [
       reasoning: true,
     },
     config: {
-      deploymentName: 'deepseek-v3-1-250821',
+      deploymentName: 'deepseek-v3-1-terminus',
     },
     contextWindowTokens: 131_072,
     description:
@@ -35,17 +35,18 @@ const doubaoChatModels: AIChatModelCard[] = [
       functionCall: true,
     },
     config: {
-      deploymentName: 'kimi-k2-250711',
+      deploymentName: 'kimi-k2-250905',
     },
-    contextWindowTokens: 256_000,
+    contextWindowTokens: 131_072,
     description:
       'Kimi-K2 是一款Moonshot AI推出的具备超强代码和 Agent 能力的 MoE 架构基础模型，总参数 1T，激活参数 32B。在通用知识推理、编程、数学、Agent 等主要类别的基准性能测试中，K2 模型的性能超过其他主流开源模型。',
     displayName: 'Kimi K2',
     id: 'kimi-k2',
-    maxOutput: 16_384,
+    maxOutput: 32_768,
     pricing: {
       currency: 'CNY',
       units: [
+        { name: 'textInput_cacheRead', rate: 0.8, strategy: 'fixed', unit: 'millionTokens' },
         { name: 'textInput', rate: 4, strategy: 'fixed', unit: 'millionTokens' },
         { name: 'textOutput', rate: 16, strategy: 'fixed', unit: 'millionTokens' },
       ],
@@ -73,9 +74,9 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]': 0.8,
-              '[32_000, 128_000]': 2.4,
-              '[128_000, infinity]': 4.8,
+              '[0, 0.032]': 0.8,
+              '[0.032, 0.128]': 2.4,
+              '[0.128, infinity]': 4.8,
             },
             pricingParams: ['textInputRange'],
           },
@@ -86,9 +87,9 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]': 8,
-              '[32_000, 128_000]': 16,
-              '[128_000, infinity]': 24,
+              '[0, 0.032]': 8,
+              '[0.032, 0.128]': 16,
+              '[0.128, infinity]': 24,
             },
             pricingParams: ['textInputRange'],
           },
@@ -126,9 +127,9 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]': 0.8,
-              '[32_000, 128_000]': 1.2,
-              '[128_000, infinity]': 2.4,
+              '[0, 0.032]': 0.8,
+              '[0.032, 0.128]': 1.2,
+              '[0.128, infinity]': 2.4,
             },
             pricingParams: ['textInputRange'],
           },
@@ -139,9 +140,9 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]': 8,
-              '[32_000, 128_000]': 16,
-              '[128_000, infinity]': 24,
+              '[0, 0.032]': 8,
+              '[0.032, 0.128]': 16,
+              '[0.128, infinity]': 24,
             },
             pricingParams: ['textInputRange'],
           },
@@ -161,7 +162,7 @@ const doubaoChatModels: AIChatModelCard[] = [
       vision: true,
     },
     config: {
-      deploymentName: 'doubao-seed-1-6-250615',
+      deploymentName: 'doubao-seed-1-6-251015',
     },
     contextWindowTokens: 256_000,
     description:
@@ -176,9 +177,9 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]': 0.8,
-              '[32_000, 128_000]': 1.2,
-              '[128_000, infinity]': 2.4,
+              '[0, 0.032]': 0.8,
+              '[0.032, 0.128]': 1.2,
+              '[0.128, infinity]': 2.4,
             },
             pricingParams: ['textInputRange'],
           },
@@ -189,10 +190,10 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]_[0, 8192]': 2,
-              '[0, 32_000]_[8192, infinity]': 8,
-              '[32_000, 128_000]_[0, infinity]': 16,
-              '[128_000, infinity]_[0, infinity]': 24,
+              '[0, 0.032]_[0, 0.0002]': 2,
+              '[0, 0.032]_[0.0002, infinity]': 8,
+              '[0.032, 0.128]_[0, infinity]': 16,
+              '[0.128, infinity]_[0, infinity]': 24,
             },
             pricingParams: ['textInputRange', 'textOutputRange'],
           },
@@ -204,7 +205,60 @@ const doubaoChatModels: AIChatModelCard[] = [
       ],
     },
     settings: {
-      extendParams: ['thinking'],
+      extendParams: ['gpt5ReasoningEffort'],
+    },
+    type: 'chat',
+  },
+  {
+    abilities: {
+      functionCall: true,
+      reasoning: true,
+      vision: true,
+    },
+    config: {
+      deploymentName: 'doubao-seed-1-6-lite-251015',
+    },
+    contextWindowTokens: 256_000,
+    description:
+      'Doubao-Seed-1.6-lite 全新多模态深度思考模型，支持思考程度可调节（reasoning effort），即 Minimal、Low、Medium、High 四种模式，更强性价比，常见任务的最佳选择，上下文窗口至256k。',
+    displayName: 'Doubao Seed 1.6 Lite',
+    id: 'doubao-seed-1.6-lite',
+    maxOutput: 32_000,
+    pricing: {
+      currency: 'CNY',
+      units: [
+        {
+          lookup: {
+            prices: {
+              '[0, 0.032]': 0.3,
+              '[0.032, 0.128]': 0.6,
+              '[0.128, 0.256]': 1.2,
+            },
+            pricingParams: ['textInputRange'],
+          },
+          name: 'textInput',
+          strategy: 'lookup',
+          unit: 'millionTokens',
+        },
+        {
+          lookup: {
+            prices: {
+              '[0, 0.032]_[0, 0.0002]': 0.6,
+              '[0, 0.032]_[0.0002, infinity]': 2.4,
+              '[0.032, 0.128]_[0, infinity]': 4,
+              '[0.128, 0.256]_[0, infinity]': 12,
+            },
+            pricingParams: ['textInputRange', 'textOutputRange'],
+          },
+          name: 'textOutput',
+          strategy: 'lookup',
+          unit: 'millionTokens',
+        },
+        { name: 'textInput_cacheRead', rate: 0.06, strategy: 'fixed', unit: 'millionTokens' },
+      ],
+    },
+    settings: {
+      extendParams: ['gpt5ReasoningEffort'],
     },
     type: 'chat',
   },
@@ -230,9 +284,9 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]': 0.15,
-              '[32_000, 128_000]': 0.3,
-              '[128_000, infinity]': 0.6,
+              '[0, 0.032]': 0.15,
+              '[0.032, 0.128]': 0.3,
+              '[0.128, infinity]': 0.6,
             },
             pricingParams: ['textInputRange'],
           },
@@ -243,9 +297,9 @@ const doubaoChatModels: AIChatModelCard[] = [
         {
           lookup: {
             prices: {
-              '[0, 32_000]': 1.5,
-              '[32_000, 128_000]': 3,
-              '[128_000, infinity]': 6,
+              '[0, 0.032]': 1.5,
+              '[0.032, 0.128]': 3,
+              '[0.128, infinity]': 6,
             },
             pricingParams: ['textInputRange'],
           },
@@ -742,11 +796,46 @@ const volcengineImageModels: AIImageModelCard[] = [
     },
     */
     description:
-      'Doubao图片生成模型由字节跳动 Seed 团队研发，支持文字与图片输入，提供高可控、高质量的图片生成体验。基于文本提示词生成图片。',
-    displayName: 'Doubao Seedream 3.0 t2i',
+      'Seedream 4.0 图片生成模型由字节跳动 Seed 团队研发，支持文字与图片输入，提供高可控、高质量的图片生成体验。基于文本提示词生成图片。',
+    displayName: 'Seedream 4.0',
+    enabled: true,
+    id: 'doubao-seedream-4-0-250828',
+    parameters: {
+      imageUrls: { default: [], maxCount: 10, maxFileSize: 10 * 1024 * 1024 },
+      prompt: {
+        default: '',
+      },
+      size: {
+        default: '1024x1024',
+        enum: [
+          '2048x2048',
+          '2304x1728',
+          '1728x2304',
+          '2560x1440',
+          '1440x2560',
+          '2496x1664',
+          '1664x2496',
+          '3024x1296',
+        ],
+      },
+    },
+    releasedAt: '2025-09-09',
+    type: 'image',
+  },
+  {
+    /*
+    // TODO: AIImageModelCard 不支持 config.deploymentName
+    config: {
+      deploymentName: 'doubao-seedream-3-0-t2i-250415',
+    },
+    */
+    description:
+      'Seedream 3.0 图片生成模型由字节跳动 Seed 团队研发，支持文字与图片输入，提供高可控、高质量的图片生成体验。基于文本提示词生成图片。',
+    displayName: 'Seedream 3.0 文生图',
     enabled: true,
     id: 'doubao-seedream-3-0-t2i-250415',
     parameters: {
+      cfg: { default: 2.5, max: 10, min: 1, step: 0.1 },
       prompt: {
         default: '',
       },
@@ -768,32 +857,27 @@ const volcengineImageModels: AIImageModelCard[] = [
     releasedAt: '2025-04-15',
     type: 'image',
   },
-  /*
   // Note: Doubao 图生图模型与文生图模型公用一个 Endpoint，当前如果存在 imageUrl 会切换至 edit endpoint 下
   {
-    config: {
-      deploymentName: 'doubao-seededit-3-0-i2i-250628',
-    },
+    // config: {
+    //   deploymentName: 'doubao-seededit-3-0-i2i-250628',
+    // },
     description:
       'Doubao图片生成模型由字节跳动 Seed 团队研发，支持文字与图片输入，提供高可控、高质量的图片生成体验。支持通过文本指令编辑图像，生成图像的边长在512～1536之间。',
-    displayName: 'Doubao SeedEdit 3.0 i2i',
+    displayName: 'SeedEdit 3.0 图生图',
     enabled: true,
     id: 'doubao-seededit-3-0-i2i-250628',
     parameters: {
-      imageUrl: { default: null },
+      cfg: { default: 5.5, max: 10, min: 1, step: 0.1 },
+      imageUrl: { default: null, maxFileSize: 10 * 1024 * 1024 },
       prompt: {
         default: '',
       },
       seed: { default: null },
-      size: {
-        default: '1024x1024',
-        enum: ['1024x1024', '864x1152', '1152x864', '1280x720', '720x1280', '832x1248', '1248x832', '1512x648'],
-      },
     },
     releasedAt: '2025-06-28',
     type: 'image',
   },
-  */
 ];
 
 export const allModels = [...doubaoChatModels, ...volcengineImageModels];

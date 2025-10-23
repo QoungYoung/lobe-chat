@@ -25,16 +25,22 @@ export enum ChatSettingsTabs {
   TTS = 'tts',
 }
 
+export enum GroupSettingsTabs {
+  Chat = 'chat',
+  Members = 'members',
+  Settings = 'settings',
+}
+
 export enum SettingsTabs {
   About = 'about',
   Agent = 'agent',
   Common = 'common',
   Hotkey = 'hotkey',
+  Image = 'image',
   LLM = 'llm',
   Provider = 'provider',
   Proxy = 'proxy',
   Storage = 'storage',
-  Sync = 'sync',
   SystemAgent = 'system-agent',
   TTS = 'tts',
 }
@@ -47,8 +53,11 @@ export enum ProfileTabs {
 }
 
 export interface SystemStatus {
+  chatInputHeight?: number;
+  expandInputActionbar?: boolean;
   // which sessionGroup should expand
   expandSessionGroupKeys: string[];
+  fileManagerViewMode?: 'list' | 'masonry';
   filePanelWidth: number;
   hideGemini2_5FlashImagePreviewChineseWarning?: boolean;
   hidePWAInstaller?: boolean;
@@ -61,9 +70,18 @@ export interface SystemStatus {
   isEnablePglite?: boolean;
   isShowCredit?: boolean;
   language?: LocaleMode;
+  /**
+   * 记住用户最后选择的图像生成模型
+   */
+  lastSelectedImageModel?: string;
+  /**
+   * 记住用户最后选择的图像生成提供商
+   */
+  lastSelectedImageProvider?: string;
   latestChangelogId?: string;
   mobileShowPortal?: boolean;
   mobileShowTopic?: boolean;
+  noWideScreen?: boolean;
   portalWidth: number;
   sessionsWidth: number;
   showChatSideBar?: boolean;
@@ -78,7 +96,6 @@ export interface SystemStatus {
    * theme mode
    */
   themeMode?: ThemeMode;
-  wideScreen?: boolean;
   zenMode?: boolean;
 }
 
@@ -106,7 +123,10 @@ export interface GlobalState {
 }
 
 export const INITIAL_STATUS = {
+  chatInputHeight: 64,
+  expandInputActionbar: true,
   expandSessionGroupKeys: [SessionDefaultGroup.Pinned, SessionDefaultGroup.Default],
+  fileManagerViewMode: 'list' as const,
   filePanelWidth: 320,
   hideGemini2_5FlashImagePreviewChineseWarning: false,
   hidePWAInstaller: false,
@@ -114,6 +134,7 @@ export const INITIAL_STATUS = {
   imagePanelWidth: 320,
   imageTopicPanelWidth: 80,
   mobileShowTopic: false,
+  noWideScreen: true,
   portalWidth: 400,
   sessionsWidth: 320,
   showChatSideBar: true,
@@ -125,7 +146,6 @@ export const INITIAL_STATUS = {
   showSystemRole: false,
   systemRoleExpandedMap: {},
   themeMode: 'auto',
-  wideScreen: true,
   zenMode: false,
 } satisfies SystemStatus;
 
